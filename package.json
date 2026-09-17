@@ -1,0 +1,9 @@
+{
+  "name": "bearing-monitoring-system",
+  "version": "1.0.0",
+  "description": "Sistem Monitoring Kondisi Bearing Motor - PT Bekaert Indonesia",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node start.js"
+  }
+}

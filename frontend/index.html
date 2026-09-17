@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Motor Condition Monitoring — Mesin ISC | PT Bekaert Indonesia</title>
+  <link rel="stylesheet" href="/static/style.css?v=16">
+  <script src="/static/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- TOPBAR / HEADER -->
+  <header class="topbar">
+    <div class="brand-group">
+      <img src="/static/logo.png" alt="Logo Bekaert" class="brand-logo" id="brandLogo" onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';" />
+      <div class="brand-logo-fallback" id="logoFallback" style="display:none;">B</div>
+      <div class="brand-text">
+        <div class="company">IoT Maintenance ISC</div>
+        <div class="division">PT Bekaert Indonesia</div>
+      </div>
+      <div class="title-divider"></div>
+      <div class="title-group">
+        <h1>Motor Condition Monitoring</h1>
+        <p id="subtitle">MESIN ISC (20 NODE ESP32 + LORA)</p>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="status" id="connStatusBox">
+        <div class="status-dot" id="connDot"></div>
+        <span id="connLabel">MENGHUBUNGKAN...</span>
+      </div>
+      <button class="chart-btn btn-sound" id="btnSoundToggle" title="Aktifkan / Matikan Alarm Suara">
+        <span id="soundIcon">🔇</span> <span id="soundText">Sound Off</span>
+      </button>
+      <a href="/api/export?hours=24" class="chart-btn btn-excel" id="btnExportTop" title="Unduh Laporan Telemetry 24 Jam">
+        📥 Ekspor CSV
+      </a>
+      <a href="http://esp32-bearing-gateway.local" target="_blank" class="chart-btn btn-gateway" id="btnGatewayLink" title="Buka Web OTA & Web Serial Monitor Gateway ESP32">
+        📟 Gateway OTA
+      </a>
+    </div>
+  </header>
+
+  <!-- ANOMALY BANNER -->
+  <div class="anomaly-banner" id="anomalyBanner" style="display:none;">
+    ⚠️ PERINGATAN: TERDETEKSI KONDISI ANOMALI PADA BEARING MOTOR!
+  </div>
+
+  <!-- SUMMARY STRIP (5 COLUMNS) -->
+  <div class="summary-strip">
+    <div class="summary-item" data-filter="all" id="btnFilterAll">
+      <span>Total Node</span>
+      <strong id="statTotal">20</strong>
+    </div>
+    <div class="summary-item status-normal" data-filter="normal" id="btnFilterNormal">
+      <span>🟢 Normal</span>
+      <strong id="statNormal" style="color: var(--green);">0</strong>
+    </div>
+    <div class="summary-item status-warning" data-filter="warning" id="btnFilterWarning">
+      <span>🟡 Warning</span>
+      <strong id="statWarning" style="color: var(--amber);">0</strong>
+    </div>
+    <div class="summary-item status-critical" data-filter="critical" id="btnFilterCritical">
+      <span>🔴 Critical</span>
+      <strong id="statCritical" style="color: var(--red);">0</strong>
+    </div>
+    <div class="summary-item status-offline" data-filter="offline" id="btnFilterOffline">
+      <span>⚪ Offline</span>
+      <strong id="statOffline" style="color: var(--text-dim);">0</strong>
+    </div>
+  </div>
+
+  <!-- TOOLBAR CONTROL PANEL -->
+  <div class="control-panel">
+    <div class="toolbar-left">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="chart-input" placeholder="Cari nama motor / node ID..." />
+      </div>
+      <div class="filter-pills" id="filterPills">
+        <button class="filter-pill active" data-filter="all">Semua Node</button>
+        <button class="filter-pill pill-warning" data-filter="warning">Warning</button>
+        <button class="filter-pill pill-critical" data-filter="critical">Critical</button>
+        <button class="filter-pill pill-offline" data-filter="offline">Offline</button>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <div class="last-update-tag">
+        Pembaruan: <span id="lastUpdate">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN NODE CARDS GRID -->
+  <main class="main-content">
+    <div class="node-grid" id="nodeGrid">
+      <!-- Node cards digenerate oleh dashboard.js -->
+    </div>
+  </main>
+
+  <!-- MODAL DETAIL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div>
+          <h2 id="modalTitle">Node Detail</h2>
+          <p class="modal-subtitle" id="modalSubtitle">Monitoring Kondisi Real-Time Sensor</p>
+        </div>
+        <button class="modal-close" id="modalClose" aria-label="Tutup Modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-detail-grid" id="modalDetailGrid">
+          <!-- Detail metrics digenerate oleh dashboard.js -->
+        </div>
+        
+        <div class="chart-panel">
+          <div class="chart-panel-header">
+            <div>
+              <div class="chart-panel-label">📈 Riwayat Real-time Suhu &amp; Vibrasi</div>
+              <div class="panel-subtitle">Grafik tren historis telemetry bearing motor</div>
+            </div>
+            <div class="chart-controls">
+              <span class="settings-label">Rentang:</span>
+              <button class="range-btn active" data-hours="1">1 Jam</button>
+              <button class="range-btn" data-hours="6">6 Jam</button>
+              <button class="range-btn" data-hours="24">24 Jam</button>
+              <a id="btnModalExportCsv" href="#" class="chart-btn btn-excel">📊 Export CSV Node Ini</a>
+            </div>
+          </div>
+          
+          <div class="chart-wrap">
+            <canvas id="tempChart" height="135"></canvas>
+          </div>
+          <div class="chart-wrap" style="margin-top: 18px;">
+            <canvas id="vibChart" height="135"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer-note">
+    © 2026 PT Bekaert Indonesia • IoT Maintenance ISC | Sistem Monitoring Kondisi Bearing Motor Mesin ISC • Star Topology LoRa Gateway
+  </footer>
+
+  <script src="/static/dashboard.js?v=17"></script>
+</body>
+</html>
