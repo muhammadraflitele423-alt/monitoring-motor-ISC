@@ -1,5 +1,7 @@
 /*
- * ==============================================================================
+ * =====================================================
+ 
+ =========================
  * ⚙️ FIRMWARE NODE MONITORING BEARING MOTOR — PT BEKAERT INDONESIA
  * Hardware: ESP32 + MPU6050 (Vibrasi) + MAX31865 PT100 (Suhu) + LoRa SX1276 (923MHz)
  * Fitur Tambahan:
